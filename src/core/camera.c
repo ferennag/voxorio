@@ -4,6 +4,7 @@
 #include "cglm/types-struct.h"
 #include <assert.h>
 #include <cglm/struct/cam.h>
+#include <math.h>
 #include <stdlib.h>
 
 typedef enum MovementKeys {
@@ -43,7 +44,10 @@ void Camera_Destroy(Camera *camera) {
 
 void Camera_LookAt(Camera *camera, const vec3s target) {
   camera->front = glms_vec3_sub(target, camera->position);
-  glms_vec3_normalize(camera->front);
+  camera->front = glms_vec3_normalize(camera->front);
+
+  camera->pitch = glm_deg(asin(camera->front.y));
+  camera->yaw = glm_deg(atan2(camera->front.z, camera->front.x));
 }
 
 mat4s Camera_ViewMat(Camera *camera) {
