@@ -24,6 +24,9 @@ bool Game_Init(Game **out) {
     for (int x = -5; x < 5; ++x) {
       ivec3s position = {{x, 0, z}};
       World_EnsureChunk(game->world, position);
+
+      ivec3s below = {{x, -1, z}};
+      World_EnsureChunk(game->world, below);
     }
   }
 

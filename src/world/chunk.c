@@ -50,6 +50,7 @@ void VertexArray_Add(VertexArray *array, const Vertex vertex) {
 
 typedef struct Chunk {
   int seed;
+  fnl_state noise;
   ivec3s position;
   bool ready;
   u64 *voxels;
@@ -63,6 +64,14 @@ Chunk *Chunk_Init(int seed, ivec3s position) {
   chunk->position = position;
   chunk->ready = false;
   chunk->seed = seed;
+
+  fnl_state noise = fnlCreateState();
+  noise.seed = chunk->seed;
+  noise.noise_type = FNL_NOISE_CELLULAR;
+  noise.frequency = 0.010f;
+  noise.fractal_type = FNL_FRACTAL_FBM;
+  chunk->noise = noise;
+
   VertexArray_Init(&chunk->vertices);
   SDL_Log("Creating chunk: (%d, %d, %d)", chunk->position.x, chunk->position.y, chunk->position.z);
   glCreateVertexArrays(1, &chunk->vao);
@@ -78,7 +87,11 @@ void Chunk_Destroy(Chunk *chunk) {
   glDeleteVertexArrays(1, &chunk->vao);
   glDeleteBuffers(1, &chunk->vbo);
   VertexArray_Destroy(&chunk->vertices);
-  free(chunk->voxels);
+
+  if (chunk->voxels) {
+    free(chunk->voxels);
+  }
+
   free(chunk);
 }
 
@@ -165,27 +178,39 @@ bool Chunk_IsEmpty(Chunk *chunk, int x, int y, int z) {
   return (chunk->voxels[z * CHUNK_SIZE + x] & (((u64)1) << y)) == 0;
 }
 
+float Chunk_GetNoiseValue(Chunk *chunk, int x, int y, int z) {
+  vec3s position = {
+      {chunk->position.x * CHUNK_SIZE + x, chunk->position.y * CHUNK_SIZE, chunk->position.z * CHUNK_SIZE + z}};
+
+  return fnlGetNoise3D(&chunk->noise, position.x, position.y, position.z);
+}
+
 void Chunk_Generate(Chunk *chunk) {
   if (chunk->ready) {
     return;
   }
 
   chunk->voxels = calloc(CHUNK_SIZE * CHUNK_SIZE, sizeof(u64));
-  fnl_state noise = fnlCreateState();
-  noise.seed = chunk->seed;
-  noise.noise_type = FNL_NOISE_CELLULAR;
-  noise.frequency = 0.010f;
-  noise.fractal_type = FNL_FRACTAL_FBM;
 
   for (int z = 0; z < CHUNK_SIZE; ++z) {
     for (int x = 0; x < CHUNK_SIZE; ++x) {
-      float value = fnlGetNoise3D(&noise, chunk->position.x * CHUNK_SIZE + x, chunk->position.y * CHUNK_SIZE,
-                                  chunk->position.z * CHUNK_SIZE + z);
-      int height = (int)floor(((value + 1.0f) / 2.0f * CHUNK_SIZE));
-      chunk->voxels[z * CHUNK_SIZE + x] = (((u64)1) << height) - 1;
+      if (chunk->position.y > 0) {
+        // We are in the air, for now we will just create empty chunks
+        continue;
+      } else if (chunk->position.y == 0) {
+        // Ground level, we use the noise function to create the terrain
+        float value = Chunk_GetNoiseValue(chunk, x, 0, z);
+        int height = (int)floor(((value + 1.0f) / 2.0f * CHUNK_SIZE));
+        chunk->voxels[z * CHUNK_SIZE + x] = (((u64)1) << height) - 1;
+      } else {
+        // Everything below is fully filled with voxels for now
+        // TODO: Fill ground with noise based caves, etc
+        chunk->voxels[z * CHUNK_SIZE + x] = (((u64)1) << (CHUNK_SIZE - 1)) - 1;
+      }
     }
   }
 
+  // TODO: Implement greedy meshing
   for (int z = 0; z < CHUNK_SIZE; ++z) {
     for (int y = 0; y < CHUNK_SIZE; ++y) {
       for (int x = 0; x < CHUNK_SIZE; ++x) {
@@ -220,6 +245,8 @@ void Chunk_Generate(Chunk *chunk) {
     }
   }
 
+  // TODO: I will want to run the chunk generation on a separate thread, so any OpenGL stuff must be removed from this
+  // function!
   glBindVertexArray(chunk->vao);
   glBindBuffer(GL_ARRAY_BUFFER, chunk->vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * chunk->vertices.size, chunk->vertices.data, GL_STATIC_DRAW);
@@ -232,6 +259,7 @@ void Chunk_Generate(Chunk *chunk) {
 }
 
 bool Chunk_IsReady(Chunk *chunk) {
+  // TODO: After introducing multi-threaded chunk generation, we want mutexes in this function
   return chunk->ready;
 }
 
