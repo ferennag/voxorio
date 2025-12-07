@@ -33,6 +33,7 @@ bool Game_Init(Game **out) {
   game->camera = Camera_Init((vec3s){{50.0f, 50.0f, 50.0f}});
   Camera_LookAt(game->camera, (vec3s){{0.0f, 0.0f, 0.0f}});
 
+  glEnable(GL_MULTISAMPLE);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
 
