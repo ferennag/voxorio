@@ -1,7 +1,9 @@
 #include "chunk.h"
 #include "SDL3/SDL_log.h"
+#include "cglm/struct/affine-pre.h"
 #include <GL/glew.h>
 #include <assert.h>
+#include <cglm/struct/mat4.h>
 #include <stddef.h>
 #include <stdlib.h>
 
@@ -99,18 +101,53 @@ void Chunk_AddFace(Chunk *chunk, int x, int y, int z, CubeFace face) {
       break;
     }
     case CUBEFACE_BACK: {
+      VertexArray_Add(&chunk->vertices, (Vertex){backBottomRight, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backBottomLeft, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backTopLeft, face});
+
+      VertexArray_Add(&chunk->vertices, (Vertex){backTopLeft, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backTopRight, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backBottomRight, face});
       break;
     }
     case CUBEFACE_LEFT: {
+      VertexArray_Add(&chunk->vertices, (Vertex){backBottomLeft, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomLeft, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backTopLeft, face});
+
+      VertexArray_Add(&chunk->vertices, (Vertex){backTopLeft, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomLeft, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontTopLeft, face});
       break;
     }
     case CUBEFACE_RIGHT: {
+      VertexArray_Add(&chunk->vertices, (Vertex){frontTopRight, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomRight, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backBottomRight, face});
+
+      VertexArray_Add(&chunk->vertices, (Vertex){backBottomRight, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backTopRight, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontTopRight, face});
       break;
     }
     case CUBEFACE_TOP: {
+      VertexArray_Add(&chunk->vertices, (Vertex){backTopLeft, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontTopLeft, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontTopRight, face});
+
+      VertexArray_Add(&chunk->vertices, (Vertex){frontTopRight, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backTopRight, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backTopLeft, face});
       break;
     }
     case CUBEFACE_BOTTOM: {
+      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomLeft, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backBottomLeft, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backBottomRight, face});
+
+      VertexArray_Add(&chunk->vertices, (Vertex){backBottomRight, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomRight, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomLeft, face});
       break;
     }
   }
@@ -172,4 +209,13 @@ void Chunk_Render(Chunk *chunk) {
 
   glBindVertexArray(chunk->vao);
   glDrawArrays(GL_TRIANGLES, 0, chunk->vertices.size);
+}
+
+mat4s Chunk_ModelMat(Chunk *chunk) {
+  mat4s model = glms_mat4_identity();
+  return glms_translate(model, (vec3s){{
+                                   chunk->position.x * CHUNK_SIZE,
+                                   chunk->position.y * CHUNK_SIZE,
+                                   chunk->position.z * CHUNK_SIZE,
+                               }});
 }

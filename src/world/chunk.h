@@ -21,3 +21,5 @@ bool Chunk_IsReady(Chunk *chunk);
 ivec3s Chunk_GetPosition(Chunk *chunk);
 
 void Chunk_Render(Chunk *chunk);
+
+mat4s Chunk_ModelMat(Chunk *chunk);

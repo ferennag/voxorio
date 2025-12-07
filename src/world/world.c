@@ -53,6 +53,7 @@ void World_Render(World *world, mat4s projection, mat4s view) {
 
     while (node != NULL) {
       if (node->chunk != NULL) {
+        Shader_UniformMat4(world->shader, "model", Chunk_ModelMat(node->chunk));
         Chunk_Render(node->chunk);
       }
       node = node->next;
