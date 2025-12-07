@@ -77,5 +77,5 @@ void Game_Render(Game *game) {
   Camera_Update(game->camera);
   World_Update(game->world);
 
-  World_Render(game->world, game->projection, Camera_ViewMat(game->camera));
+  World_Render(game->world, game->projection, game->camera);
 }

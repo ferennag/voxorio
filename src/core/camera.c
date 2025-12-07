@@ -55,6 +55,10 @@ mat4s Camera_ViewMat(Camera *camera) {
   return glms_lookat(camera->position, target, camera->up);
 }
 
+vec3s Camera_GetPosition(Camera *camera) {
+  return camera->position;
+}
+
 void Camera_HandleMouseMotion(Camera *camera, SDL_MouseMotionEvent *event) {
   float speed = 0.1f;
   camera->yaw += event->xrel * speed;

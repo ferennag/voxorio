@@ -12,4 +12,6 @@ void Shader_Bind(Shader *shader);
 
 void Shader_Unbind(Shader *shader);
 
+void Shader_UniformVec3(Shader *shader, const char *name, const vec3s value);
+
 void Shader_UniformMat4(Shader *shader, const char *name, const mat4s value);

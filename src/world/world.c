@@ -1,7 +1,9 @@
 #include "world.h"
 #include "SDL3/SDL_surface.h"
+#include "cglm/struct/vec3.h"
 #include "chunk.h"
 #include "chunk_hashmap.h"
+#include "core/camera.h"
 #include "core/shader.h"
 #include <GL/glew.h>
 #include <SDL3_image/SDL_image.h>
@@ -60,10 +62,16 @@ void World_Destroy(World *world) {
 void World_Update(World *world) {
 }
 
-void World_Render(World *world, mat4s projection, mat4s view) {
+void World_Render(World *world, mat4s projection, Camera *camera) {
   Shader_Bind(world->shader);
   Shader_UniformMat4(world->shader, "projection", projection);
-  Shader_UniformMat4(world->shader, "view", view);
+  Shader_UniformMat4(world->shader, "view", Camera_ViewMat(camera));
+
+  vec3s sunPosition = {{2.0f, 1.0f, 2.0f}};
+  vec3s sunDirection = glms_vec3_sub((vec3s){{0.0f, 0.0f, 0.0f}}, sunPosition);
+  Shader_UniformVec3(world->shader, "sunDirection", sunDirection);
+  Shader_UniformVec3(world->shader, "sunColor", (vec3s){{1.0f, 1.0f, 1.0f}});
+  Shader_UniformVec3(world->shader, "eye", Camera_GetPosition(camera));
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, world->texture);

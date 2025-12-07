@@ -89,6 +89,16 @@ void Shader_Unbind(Shader *shader) {
   glUseProgram(0);
 }
 
+void Shader_UniformVec3(Shader *shader, const char *name, const vec3s value) {
+  GLint location = glGetUniformLocation(shader->id, name);
+  if (location == -1) {
+    SDL_Log("Can't find uniform location: %s", name);
+    return;
+  }
+
+  glUniform3fv(location, 1, value.raw);
+}
+
 void Shader_UniformMat4(Shader *shader, const char *name, const mat4s value) {
   GLint location = glGetUniformLocation(shader->id, name);
   if (location == -1) {
