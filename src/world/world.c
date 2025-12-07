@@ -1,7 +1,10 @@
 #include "world.h"
+#include "SDL3/SDL_surface.h"
 #include "chunk.h"
 #include "chunk_hashmap.h"
 #include "core/shader.h"
+#include <GL/glew.h>
+#include <SDL3_image/SDL_image.h>
 #include <assert.h>
 #include <stdlib.h>
 
@@ -9,6 +12,7 @@ typedef struct World {
   int seed;
   ChunkHashMap chunks;
   Shader *shader;
+  GLuint texture;
 } World;
 
 World *World_Init(int seed) {
@@ -16,6 +20,16 @@ World *World_Init(int seed) {
   ChunkHashMap_Init(&world->chunks);
   world->shader = Shader_load("assets/shaders/basic.vert", "assets/shaders/basic.frag");
   world->seed = seed;
+  glCreateTextures(GL_TEXTURE_2D, 1, &world->texture);
+  glBindTexture(GL_TEXTURE_2D, world->texture);
+  SDL_Surface *dirt = IMG_Load("assets/textures/dirt.png");
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dirt->w, dirt->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, dirt->pixels);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glGenerateMipmap(GL_TEXTURE_2D);
+  SDL_DestroySurface(dirt);
 
   return world;
 }
@@ -34,6 +48,7 @@ void World_EnsureChunk(World *world, ivec3s position) {
 void World_Destroy(World *world) {
   assert(world != NULL);
 
+  glDeleteTextures(1, &world->texture);
   if (world->shader) {
     Shader_Destroy(world->shader);
   }
@@ -49,6 +64,9 @@ void World_Render(World *world, mat4s projection, mat4s view) {
   Shader_Bind(world->shader);
   Shader_UniformMat4(world->shader, "projection", projection);
   Shader_UniformMat4(world->shader, "view", view);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, world->texture);
 
   for (int i = 0; i < world->chunks.size; ++i) {
     ChunkNode *node = world->chunks.nodes[i];

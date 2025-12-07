@@ -20,6 +20,7 @@ typedef enum CubeFace {
 
 typedef struct Vertex {
   vec3s position;
+  vec2s uv;
   CubeFace face;
 } Vertex;
 
@@ -108,63 +109,63 @@ void Chunk_AddFace(Chunk *chunk, int x, int y, int z, CubeFace face) {
 
   switch (face) {
     case CUBEFACE_FRONT: {
-      VertexArray_Add(&chunk->vertices, (Vertex){frontTopLeft, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomLeft, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomRight, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontTopLeft, {{0.0f, 1.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomLeft, {{0.0f, 0.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomRight, {{1.0f, 0.0f}}, face});
 
-      VertexArray_Add(&chunk->vertices, (Vertex){frontTopLeft, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomRight, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){frontTopRight, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontTopLeft, {{0.0f, 1.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomRight, {{1.0f, 0.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontTopRight, {{1.0f, 1.0f}}, face});
       break;
     }
     case CUBEFACE_BACK: {
-      VertexArray_Add(&chunk->vertices, (Vertex){backBottomRight, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){backBottomLeft, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){backTopLeft, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backBottomRight, {{0.0f, 0.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backBottomLeft, {{1.0f, 0.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backTopLeft, {{1.0f, 1.0f}}, face});
 
-      VertexArray_Add(&chunk->vertices, (Vertex){backTopLeft, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){backTopRight, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){backBottomRight, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backTopLeft, {{1.0f, 1.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backTopRight, {{0.0f, 1.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backBottomRight, {{0.0f, 0.0f}}, face});
       break;
     }
     case CUBEFACE_LEFT: {
-      VertexArray_Add(&chunk->vertices, (Vertex){backBottomLeft, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomLeft, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){backTopLeft, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backBottomLeft, {{1.0f, 0.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomLeft, {{0.0f, 0.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backTopLeft, {{1.0f, 1.0f}}, face});
 
-      VertexArray_Add(&chunk->vertices, (Vertex){backTopLeft, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomLeft, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){frontTopLeft, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backTopLeft, {{1.0f, 1.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomLeft, {{0.0f, 0.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontTopLeft, {{0.0f, 1.0f}}, face});
       break;
     }
     case CUBEFACE_RIGHT: {
-      VertexArray_Add(&chunk->vertices, (Vertex){frontTopRight, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomRight, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){backBottomRight, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontTopRight, {{0.0f, 1.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomRight, {{0.0f, 0.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backBottomRight, {{1.0f, 0.0f}}, face});
 
-      VertexArray_Add(&chunk->vertices, (Vertex){backBottomRight, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){backTopRight, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){frontTopRight, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backBottomRight, {{1.0f, 0.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backTopRight, {{1.0f, 1.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontTopRight, {{0.0f, 1.0f}}, face});
       break;
     }
     case CUBEFACE_TOP: {
-      VertexArray_Add(&chunk->vertices, (Vertex){backTopLeft, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){frontTopLeft, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){frontTopRight, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backTopLeft, {{0.0f, 1.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontTopLeft, {{0.0f, 0.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontTopRight, {{1.0f, 0.0f}}, face});
 
-      VertexArray_Add(&chunk->vertices, (Vertex){frontTopRight, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){backTopRight, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){backTopLeft, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontTopRight, {{1.0f, 0.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backTopRight, {{1.0f, 1.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backTopLeft, {{0.0f, 1.0f}}, face});
       break;
     }
     case CUBEFACE_BOTTOM: {
-      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomLeft, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){backBottomLeft, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){backBottomRight, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomLeft, {{1.0f, 0.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backBottomLeft, {{1.0f, 1.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backBottomRight, {{0.0f, 1.0f}}, face});
 
-      VertexArray_Add(&chunk->vertices, (Vertex){backBottomRight, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomRight, face});
-      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomLeft, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){backBottomRight, {{0.0f, 1.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomRight, {{0.0f, 0.0f}}, face});
+      VertexArray_Add(&chunk->vertices, (Vertex){frontBottomLeft, {{1.0f, 0.0f}}, face});
       break;
     }
   }
@@ -252,8 +253,10 @@ void Chunk_Generate(Chunk *chunk) {
   glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * chunk->vertices.size, chunk->vertices.data, GL_STATIC_DRAW);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
   glEnableVertexAttribArray(0);
-  glVertexAttribIPointer(1, 1, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, face));
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, uv));
   glEnableVertexAttribArray(1);
+  glVertexAttribIPointer(2, 1, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, face));
+  glEnableVertexAttribArray(2);
 
   chunk->ready = true;
 }
@@ -272,7 +275,7 @@ void Chunk_Render(Chunk *chunk) {
     return;
   }
 
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   glBindVertexArray(chunk->vao);
   glDrawArrays(GL_TRIANGLES, 0, chunk->vertices.size);
 }
