@@ -1,30 +1,17 @@
 #include "game.h"
-#include "core/shader.h"
+#include "cglm/util.h"
 #include "world/world.h"
 #include <assert.h>
+#include <cglm/struct/cam.h>
 #include <stdlib.h>
 
 typedef struct Game {
-  Shader *shader;
-  GLuint vao, vbo;
-
   World *world;
+  mat4s projection, view;
 } Game;
 
-static float vertices[][3] = {
-    {-0.5f, -0.5f, 0.0f},
-    {0.5f, -0.5f, 0.0f},
-    {0.0f, 0.5f, 0.0f},
-};
-
 bool Game_Init(Game **out) {
-  Shader *shader = Shader_load("assets/shaders/basic.vert", "assets/shaders/basic.frag");
-  if (!shader) {
-    return false;
-  }
-
   Game *game = malloc(sizeof(Game));
-  game->shader = shader;
   game->world = World_Init();
 
   for (int z = -1; z < 1; ++z) {
@@ -34,13 +21,7 @@ bool Game_Init(Game **out) {
     }
   }
 
-  glCreateVertexArrays(1, &game->vao);
-  glCreateBuffers(1, &game->vbo);
-  glBindVertexArray(game->vao);
-  glBindBuffer(GL_ARRAY_BUFFER, game->vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-  glEnableVertexAttribArray(0);
+  game->view = glms_lookat((vec3s){{100.0f, 100.0f, 100.0f}}, (vec3s){{0.0f, 0.0f, 0.0f}}, (vec3s){{0.0f, 1.0f, 0.0f}});
 
   *out = game;
   return game;
@@ -48,10 +29,6 @@ bool Game_Init(Game **out) {
 
 void Game_Destroy(Game *game) {
   assert(game != NULL);
-
-  if (game->shader) {
-    Shader_Destroy(game->shader);
-  }
 
   if (game->world) {
     World_Destroy(game->world);
@@ -62,6 +39,7 @@ void Game_Destroy(Game *game) {
 
 void Game_HandleResize(Game *game, int w, int h) {
   glViewport(0, 0, w, h);
+  game->projection = glms_perspective(glm_rad(60.0f), (float)w / (float)h, 0.1f, 1000.0f);
 }
 
 void Game_HandleKeyboardEvent(Game *game, SDL_KeyboardEvent *event) {
@@ -77,8 +55,5 @@ void Game_Render(Game *game) {
   glClearColor(0.05f, 0.05f, 0.1f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  Shader_Bind(game->shader);
-  glBindVertexArray(game->vao);
-  glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / sizeof(float));
-  Shader_Unbind(game->shader);
+  World_Render(game->world, game->projection, game->view);
 }

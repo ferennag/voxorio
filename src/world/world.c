@@ -1,16 +1,20 @@
 #include "world.h"
 #include "chunk.h"
 #include "chunk_hashmap.h"
+#include "core/shader.h"
 #include <assert.h>
 #include <stdlib.h>
 
 typedef struct World {
   ChunkHashMap chunks;
+  Shader *shader;
 } World;
 
 World *World_Init(void) {
   World *world = malloc(sizeof(World));
   ChunkHashMap_Init(&world->chunks);
+  world->shader = Shader_load("assets/shaders/basic.vert", "assets/shaders/basic.frag");
+
   return world;
 }
 
@@ -22,10 +26,16 @@ void World_EnsureChunk(World *world, ivec3s position) {
 
   chunk = Chunk_Init(position);
   ChunkHashMap_Add(&world->chunks, chunk);
+  Chunk_Generate(chunk);
 }
 
 void World_Destroy(World *world) {
   assert(world != NULL);
+
+  if (world->shader) {
+    Shader_Destroy(world->shader);
+  }
+
   ChunkHashMap_Destroy(&world->chunks);
   free(world);
 }
@@ -33,5 +43,21 @@ void World_Destroy(World *world) {
 void World_Update(World *world) {
 }
 
-void World_Render(World *world) {
+void World_Render(World *world, mat4s projection, mat4s view) {
+  Shader_Bind(world->shader);
+  Shader_UniformMat4(world->shader, "projection", projection);
+  Shader_UniformMat4(world->shader, "view", view);
+
+  for (int i = 0; i < world->chunks.size; ++i) {
+    ChunkNode *node = world->chunks.nodes[i];
+
+    while (node != NULL) {
+      if (node->chunk != NULL) {
+        Chunk_Render(node->chunk);
+      }
+      node = node->next;
+    }
+  }
+
+  Shader_Unbind(world->shader);
 }

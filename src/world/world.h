@@ -12,4 +12,4 @@ void World_Destroy(World *world);
 
 void World_Update(World *world);
 
-void World_Render(World *world);
+void World_Render(World *world, mat4s projection, mat4s view);

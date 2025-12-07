@@ -56,7 +56,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wpedantic -g)
 target_link_libraries(${PROJECT_NAME} SDL3::SDL3 SDL3_image::SDL3_image
-                      libglew_static cglm)
+                      libglew_static cglm m)
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 23)
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD

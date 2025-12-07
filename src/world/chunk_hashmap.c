@@ -30,7 +30,7 @@ void ChunkHashMap_Destroy(ChunkHashMap *hashMap) {
 }
 
 void ChunkHashMap_Add(ChunkHashMap *map, Chunk *chunk) {
-  int hash = ChunkHashMap_Hash(map, chunk->position);
+  int hash = ChunkHashMap_Hash(map, Chunk_GetPosition(chunk));
   ChunkNode *node = map->nodes[hash];
 
   if (node == NULL) {
@@ -58,7 +58,7 @@ Chunk *ChunkHashMap_Find(ChunkHashMap *map, ivec3s position) {
   }
 
   while (node != NULL) {
-    if (glms_ivec3_eqv(node->chunk->position, position)) {
+    if (glms_ivec3_eqv(Chunk_GetPosition(node->chunk), position)) {
       return node->chunk;
     }
     node = node->next;
