@@ -6,14 +6,16 @@
 #include <stdlib.h>
 
 typedef struct World {
+  int seed;
   ChunkHashMap chunks;
   Shader *shader;
 } World;
 
-World *World_Init(void) {
+World *World_Init(int seed) {
   World *world = malloc(sizeof(World));
   ChunkHashMap_Init(&world->chunks);
   world->shader = Shader_load("assets/shaders/basic.vert", "assets/shaders/basic.frag");
+  world->seed = seed;
 
   return world;
 }
@@ -24,7 +26,7 @@ void World_EnsureChunk(World *world, ivec3s position) {
     return;
   }
 
-  chunk = Chunk_Init(position);
+  chunk = Chunk_Init(world->seed, position);
   ChunkHashMap_Add(&world->chunks, chunk);
   Chunk_Generate(chunk);
 }

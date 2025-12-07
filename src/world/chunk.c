@@ -1,6 +1,8 @@
+#define FNL_IMPL
 #include "chunk.h"
 #include "SDL3/SDL_log.h"
 #include "cglm/struct/affine-pre.h"
+#include <FastNoiseLite.h>
 #include <GL/glew.h>
 #include <assert.h>
 #include <cglm/struct/mat4.h>
@@ -47,6 +49,7 @@ void VertexArray_Add(VertexArray *array, const Vertex vertex) {
 }
 
 typedef struct Chunk {
+  int seed;
   ivec3s position;
   bool ready;
   u64 *voxels;
@@ -55,10 +58,11 @@ typedef struct Chunk {
   GLuint vao, vbo;
 } Chunk;
 
-Chunk *Chunk_Init(ivec3s position) {
-  Chunk *chunk = malloc(sizeof(Chunk));
+Chunk *Chunk_Init(int seed, ivec3s position) {
+  Chunk *chunk = calloc(1, sizeof(Chunk));
   chunk->position = position;
   chunk->ready = false;
+  chunk->seed = seed;
   VertexArray_Init(&chunk->vertices);
   SDL_Log("Creating chunk: (%d, %d, %d)", chunk->position.x, chunk->position.y, chunk->position.z);
   glCreateVertexArrays(1, &chunk->vao);
@@ -153,32 +157,65 @@ void Chunk_AddFace(Chunk *chunk, int x, int y, int z, CubeFace face) {
   }
 }
 
+bool Chunk_IsVoxel(Chunk *chunk, int x, int y, int z) {
+  return chunk->voxels[z * CHUNK_SIZE + x] & (((u64)1) << y);
+}
+
+bool Chunk_IsEmpty(Chunk *chunk, int x, int y, int z) {
+  return (chunk->voxels[z * CHUNK_SIZE + x] & (((u64)1) << y)) == 0;
+}
+
 void Chunk_Generate(Chunk *chunk) {
   if (chunk->ready) {
     return;
   }
 
   chunk->voxels = calloc(CHUNK_SIZE * CHUNK_SIZE, sizeof(u64));
+  fnl_state noise = fnlCreateState();
+  noise.seed = chunk->seed;
+  noise.noise_type = FNL_NOISE_CELLULAR;
+  noise.frequency = 0.010f;
+  noise.fractal_type = FNL_FRACTAL_FBM;
 
   for (int z = 0; z < CHUNK_SIZE; ++z) {
     for (int x = 0; x < CHUNK_SIZE; ++x) {
-      chunk->voxels[z * CHUNK_SIZE + x] = 1;
+      float value = fnlGetNoise3D(&noise, chunk->position.x * CHUNK_SIZE + x, chunk->position.y * CHUNK_SIZE,
+                                  chunk->position.z * CHUNK_SIZE + z);
+      int height = (int)floor(((value + 1.0f) / 2.0f * CHUNK_SIZE));
+      chunk->voxels[z * CHUNK_SIZE + x] = (((u64)1) << height) - 1;
     }
   }
 
   for (int z = 0; z < CHUNK_SIZE; ++z) {
     for (int y = 0; y < CHUNK_SIZE; ++y) {
       for (int x = 0; x < CHUNK_SIZE; ++x) {
-        if (!(chunk->voxels[z * CHUNK_SIZE + x] & (((u64)1) << y))) {
+        if (!Chunk_IsVoxel(chunk, x, y, z)) {
           continue;
         }
 
-        Chunk_AddFace(chunk, x, y, z, CUBEFACE_FRONT);
-        Chunk_AddFace(chunk, x, y, z, CUBEFACE_BACK);
-        Chunk_AddFace(chunk, x, y, z, CUBEFACE_LEFT);
-        Chunk_AddFace(chunk, x, y, z, CUBEFACE_RIGHT);
-        Chunk_AddFace(chunk, x, y, z, CUBEFACE_TOP);
-        Chunk_AddFace(chunk, x, y, z, CUBEFACE_BOTTOM);
+        if (z == 0 || Chunk_IsEmpty(chunk, x, y, z - 1)) {
+          Chunk_AddFace(chunk, x, y, z, CUBEFACE_BACK);
+        }
+
+        if (z == CHUNK_SIZE - 1 || Chunk_IsEmpty(chunk, x, y, z + 1)) {
+          Chunk_AddFace(chunk, x, y, z, CUBEFACE_FRONT);
+        }
+
+        if (x == 0 || Chunk_IsEmpty(chunk, x - 1, y, z)) {
+          Chunk_AddFace(chunk, x, y, z, CUBEFACE_LEFT);
+        }
+
+        if (x == CHUNK_SIZE - 1 || Chunk_IsEmpty(chunk, x + 1, y, z)) {
+          Chunk_AddFace(chunk, x, y, z, CUBEFACE_RIGHT);
+        }
+
+        if (y == CHUNK_SIZE - 1 || Chunk_IsEmpty(chunk, x, y + 1, z)) {
+          Chunk_AddFace(chunk, x, y, z, CUBEFACE_TOP);
+        }
+
+        if (y == 0 || Chunk_IsEmpty(chunk, x, y - 1, z)) {
+          Chunk_AddFace(chunk, x, y, z, CUBEFACE_BOTTOM);
+        }
       }
     }
   }

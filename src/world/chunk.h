@@ -10,7 +10,11 @@ static const int CHUNK_SIZE = 64;
 
 typedef struct Chunk Chunk;
 
-Chunk *Chunk_Init(ivec3s position);
+Chunk *Chunk_Init(int seed, ivec3s position);
+
+bool Chunk_IsVoxel(Chunk *chunk, int x, int y, int z);
+
+bool Chunk_IsEmpty(Chunk *chunk, int x, int y, int z);
 
 void Chunk_Generate(Chunk *chunk);
 

@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <cglm/struct/cam.h>
 #include <stdlib.h>
+#include <time.h>
 
 typedef struct Game {
   World *world;
@@ -15,10 +16,12 @@ typedef struct Game {
 
 bool Game_Init(Game **out) {
   Game *game = malloc(sizeof(Game));
-  game->world = World_Init();
 
-  for (int z = -1; z < 1; ++z) {
-    for (int x = -1; x < 1; ++x) {
+  srand(time(0));
+  game->world = World_Init(rand());
+
+  for (int z = -5; z < 5; ++z) {
+    for (int x = -5; x < 5; ++x) {
       ivec3s position = {{x, 0, z}};
       World_EnsureChunk(game->world, position);
     }

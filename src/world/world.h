@@ -4,7 +4,7 @@
 
 typedef struct World World;
 
-World *World_Init(void);
+World *World_Init(int seed);
 
 void World_EnsureChunk(World *world, ivec3s position);
 
