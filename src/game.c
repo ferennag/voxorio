@@ -57,6 +57,7 @@ void Game_HandleKeyboardEvent(Game *game, SDL_KeyboardEvent *event) {
 }
 
 void Game_HandleMouseMotionEvent(Game *game, SDL_MouseMotionEvent *event) {
+  Camera_HandleMouseMotion(game->camera, event);
 }
 
 void Game_Update(Game *game) {

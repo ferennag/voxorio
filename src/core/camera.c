@@ -21,12 +21,15 @@ typedef struct Camera {
   vec3s position;
   vec3s front;
   vec3s up;
+
+  float yaw, pitch;
 } Camera;
 
 Camera *Camera_Init(const vec3s position) {
   Camera *camera = calloc(1, sizeof(Camera));
   camera->position = position;
   camera->up = (vec3s){{0.0f, 1.0f, 0.0f}};
+  camera->yaw = -90;
 
   vec3s target = glms_vec3_sub(camera->position, (vec3s){{0.0f, 0.0f, 1.0f}});
   Camera_LookAt(camera, target);
@@ -49,6 +52,23 @@ mat4s Camera_ViewMat(Camera *camera) {
 }
 
 void Camera_HandleMouseMotion(Camera *camera, SDL_MouseMotionEvent *event) {
+  float speed = 0.1f;
+  camera->yaw += event->xrel * speed;
+  camera->pitch -= event->yrel * speed;
+
+  if (camera->pitch > 89.0f) {
+    camera->pitch = 89.0f;
+  }
+
+  if (camera->pitch < -89.0f) {
+    camera->pitch = -89.0f;
+  }
+
+  vec3s direction;
+  direction.x = cos(glm_rad(camera->yaw)) * cos(glm_rad(camera->pitch));
+  direction.y = sin(glm_rad(camera->pitch));
+  direction.z = sin(glm_rad(camera->yaw)) * cos(glm_rad(camera->pitch));
+  camera->front = glms_normalize(direction);
 }
 
 void Camera_HandleKeyboardEvent(Camera *camera, SDL_KeyboardEvent *event) {
@@ -80,31 +100,30 @@ void Camera_HandleKeyboardEvent(Camera *camera, SDL_KeyboardEvent *event) {
 
 void Camera_Update(Camera *camera) {
   float speed = 0.2f;
-  vec3s velocity;
 
   if (camera->keyboardState[MOVEMENT_FORWARD]) {
-    velocity.z = -speed;
+    camera->position = glms_vec3_add(camera->position, glms_vec3_scale(camera->front, speed));
   }
 
   if (camera->keyboardState[MOVEMENT_BACK]) {
-    velocity.z = speed;
+    camera->position = glms_vec3_sub(camera->position, glms_vec3_scale(camera->front, speed));
   }
 
   if (camera->keyboardState[MOVEMENT_LEFT]) {
-    velocity.x = -speed;
+    vec3s left = glms_normalize(glms_cross(camera->front, camera->up));
+    camera->position = glms_vec3_sub(camera->position, glms_vec3_scale(left, speed));
   }
 
   if (camera->keyboardState[MOVEMENT_RIGHT]) {
-    velocity.x = speed;
+    vec3s left = glms_normalize(glms_cross(camera->front, camera->up));
+    camera->position = glms_vec3_add(camera->position, glms_vec3_scale(left, speed));
   }
 
   if (camera->keyboardState[MOVEMENT_JUMP]) {
-    velocity.y = speed;
+    camera->position = glms_vec3_add(camera->position, glms_vec3_scale(camera->up, speed));
   }
 
   if (camera->keyboardState[MOVEMENT_CROUCH]) {
-    velocity.y = -speed;
+    camera->position = glms_vec3_sub(camera->position, glms_vec3_scale(camera->up, speed));
   }
-
-  camera->position = glms_vec3_add(camera->position, velocity);
 }
