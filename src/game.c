@@ -1,5 +1,6 @@
 #include "game.h"
 #include "cglm/util.h"
+#include "core/camera.h"
 #include "world/world.h"
 #include <assert.h>
 #include <cglm/struct/cam.h>
@@ -7,7 +8,9 @@
 
 typedef struct Game {
   World *world;
-  mat4s projection, view;
+  mat4s projection;
+
+  Camera *camera;
 } Game;
 
 bool Game_Init(Game **out) {
@@ -21,7 +24,10 @@ bool Game_Init(Game **out) {
     }
   }
 
-  game->view = glms_lookat((vec3s){{100.0f, 100.0f, 100.0f}}, (vec3s){{0.0f, 0.0f, 0.0f}}, (vec3s){{0.0f, 1.0f, 0.0f}});
+  game->camera = Camera_Init((vec3s){{0.0f, 0.0f, 0.0f}});
+
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
 
   *out = game;
   return game;
@@ -34,6 +40,10 @@ void Game_Destroy(Game *game) {
     World_Destroy(game->world);
   }
 
+  if (game->camera) {
+    Camera_Destroy(game->camera);
+  }
+
   free(game);
 }
 
@@ -43,6 +53,7 @@ void Game_HandleResize(Game *game, int w, int h) {
 }
 
 void Game_HandleKeyboardEvent(Game *game, SDL_KeyboardEvent *event) {
+  Camera_HandleKeyboardEvent(game->camera, event);
 }
 
 void Game_HandleMouseMotionEvent(Game *game, SDL_MouseMotionEvent *event) {
@@ -53,7 +64,10 @@ void Game_Update(Game *game) {
 
 void Game_Render(Game *game) {
   glClearColor(0.05f, 0.05f, 0.1f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  World_Render(game->world, game->projection, game->view);
+  Camera_Update(game->camera);
+  World_Update(game->world);
+
+  World_Render(game->world, game->projection, Camera_ViewMat(game->camera));
 }

@@ -39,6 +39,8 @@ SDL_AppResult SDL_AppInit(void **state, int argc, char **argv) {
 
   SDL_GL_MakeCurrent(window, context);
 
+  SDL_SetWindowRelativeMouseMode(window, true);
+
   glewInit();
 
   GameState *gameState = malloc(sizeof(GameState));

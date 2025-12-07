@@ -169,7 +169,7 @@ void Chunk_Generate(Chunk *chunk) {
   for (int z = 0; z < CHUNK_SIZE; ++z) {
     for (int y = 0; y < CHUNK_SIZE; ++y) {
       for (int x = 0; x < CHUNK_SIZE; ++x) {
-        if (!(chunk->voxels[z * CHUNK_SIZE + x] & (1 << y))) {
+        if (!(chunk->voxels[z * CHUNK_SIZE + x] & (((u64)1) << y))) {
           continue;
         }
 
@@ -207,6 +207,7 @@ void Chunk_Render(Chunk *chunk) {
     return;
   }
 
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   glBindVertexArray(chunk->vao);
   glDrawArrays(GL_TRIANGLES, 0, chunk->vertices.size);
 }
